@@ -11,8 +11,7 @@ const inputDuration = document.querySelector('.form__input--duration');
 const inputCadence = document.querySelector('.form__input--cadence');
 const inputElevation = document.querySelector('.form__input--elevation');
 
-let map;
-let mapEvent;
+let map, mapEvent;
 if (navigator.geolocation) {
   navigator.geolocation.getCurrentPosition(
     position => {
@@ -35,6 +34,8 @@ if (navigator.geolocation) {
 
       //* adding event on map leaflet object
       map.on('click', function (mapE) {
+        //* We don't need this mapE event here in this function, but we need it outside it(form event listener).
+        //* We copy it to a global variable(mapEvent) to access it outside the scope.
         mapEvent = mapE;
         form.classList.remove('hidden');
         inputDistance.focus();
@@ -46,10 +47,17 @@ if (navigator.geolocation) {
   );
 }
 
-form.addEventListener('submit', function () {
-  console.log(mapEvent);
+form.addEventListener('submit', function (e) {
+  e.preventDefault();
 
   const { lat, lng } = mapEvent.latlng;
+
+  //* Clearing all the fields, when the form submit.
+  inputDistance.value =
+    inputDuration.value =
+    inputCadence.value =
+    inputElevation.value =
+      '';
 
   L.marker([lat, lng])
     .addTo(map)
@@ -64,4 +72,9 @@ form.addEventListener('submit', function () {
     )
     .setPopupContent('Workout')
     .openPopup();
+});
+
+inputType.addEventListener('change', function () {
+  inputElevation.closest('.form__row').classList.toggle('form__row--hidden');
+  inputCadence.closest('.form__row').classList.toggle('form__row--hidden');
 });
