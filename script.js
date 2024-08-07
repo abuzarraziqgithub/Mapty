@@ -11,12 +11,36 @@ const inputDuration = document.querySelector('.form__input--duration');
 const inputCadence = document.querySelector('.form__input--cadence');
 const inputElevation = document.querySelector('.form__input--elevation');
 
-let map, mapEvent;
-if (navigator.geolocation) {
-  navigator.geolocation.getCurrentPosition(
-    position => {
+//* Creating Classes For Refactoring Code.
+//* Concept of OOP
+class App {
+  #map;
+  #mapEvent;
+  constructor() {
+    this._getPosition();
+
+    form.addEventListener('submit', this._newWorkout.bind(this));
+
+    inputType.addEventListener('change', this._toggleElevationField);
+  }
+
+  _getPosition() {
+    if (navigator.geolocation) {
+      //* the _loadMap is treated as regular function.
+      navigator.geolocation.getCurrentPosition(
+        this._loadMap.bind(this),
+        function () {
+          alert("Couldn't get the Location ):");
+        }
+      );
+    }
+  }
+
+  _loadMap(position) {
+    {
       const { latitude } = position.coords;
       const { longitude } = position.coords;
+      console.log(this);
 
       console.log('Latitude', latitude);
       console.log('Longitude', longitude);
@@ -25,56 +49,57 @@ if (navigator.geolocation) {
 
       const coords = [latitude, longitude];
 
-      map = L.map('map').setView(coords, 13);
+      this.#map = L.map('map').setView(coords, 13);
 
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution:
           '&copy; <a href="https://www.openstreetmap.fr/hot/copyright">OpenStreetMap</a> contributors',
-      }).addTo(map);
+      }).addTo(this.#map);
 
       //* adding event on map leaflet object
-      map.on('click', function (mapE) {
-        //* We don't need this mapE event here in this function, but we need it outside it(form event listener).
-        //* We copy it to a global variable(mapEvent) to access it outside the scope.
-        mapEvent = mapE;
-        form.classList.remove('hidden');
-        inputDistance.focus();
-      });
-    },
-    () => {
-      alert("Couldn't get the Location ):");
+      this.#map.on('click', this._showForm.bind(this));
     }
-  );
+  }
+
+  _showForm(mapE) {
+    //* We don't need this mapE event here in this function, but we need it outside it(form event listener).
+    //* We copy it to a global variable(mapEvent) to access it outside the scope.
+    this.#mapEvent = mapE;
+    form.classList.remove('hidden');
+    inputDistance.focus();
+  }
+
+  _toggleElevationField() {
+    inputElevation.closest('.form__row').classList.toggle('form__row--hidden');
+    inputCadence.closest('.form__row').classList.toggle('form__row--hidden');
+  }
+
+  _newWorkout(e) {
+    e.preventDefault();
+
+    const { lat, lng } = this.#mapEvent.latlng;
+
+    //* Clearing all the fields, when the form submit.
+    inputDistance.value =
+      inputDuration.value =
+      inputCadence.value =
+      inputElevation.value =
+        '';
+
+    L.marker([lat, lng])
+      .addTo(this.#map)
+      .bindPopup(
+        L.popup({
+          minWidth: 250,
+          maxWidth: 250,
+          autoClose: false,
+          closeOnClick: false,
+          className: 'running-popup',
+        })
+      )
+      .setPopupContent('Workout')
+      .openPopup();
+  }
 }
 
-form.addEventListener('submit', function (e) {
-  e.preventDefault();
-
-  const { lat, lng } = mapEvent.latlng;
-
-  //* Clearing all the fields, when the form submit.
-  inputDistance.value =
-    inputDuration.value =
-    inputCadence.value =
-    inputElevation.value =
-      '';
-
-  L.marker([lat, lng])
-    .addTo(map)
-    .bindPopup(
-      L.popup({
-        minWidth: 250,
-        maxWidth: 250,
-        autoClose: false,
-        closeOnClick: false,
-        className: 'running-popup',
-      })
-    )
-    .setPopupContent('Workout')
-    .openPopup();
-});
-
-inputType.addEventListener('change', function () {
-  inputElevation.closest('.form__row').classList.toggle('form__row--hidden');
-  inputCadence.closest('.form__row').classList.toggle('form__row--hidden');
-});
+const app = new App();
