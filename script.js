@@ -2,8 +2,10 @@
 
 class Workout {
   date = new Date();
-
   id = (Date.now() + '').slice(-10);
+
+  clicks = 0;
+
   constructor(coords, distance, duration) {
     this.coords = coords;
     this.distance = distance;
@@ -17,6 +19,10 @@ class Workout {
     this.description = `${this.type[0].toUpperCase()}${this.type.slice(1)} on ${
       months[this.date.getMonth()]
     } ${this.date.getDate()}`;
+  }
+
+  click() {
+    this.clicks++;
   }
 }
 
@@ -69,10 +75,12 @@ class App {
   #map;
   #mapEvent;
   #workouts = [];
+  #mapZoomLevel = 13;
   constructor() {
     this._getPosition();
     form.addEventListener('submit', this._newWorkout.bind(this));
     inputType.addEventListener('change', this._toggleElevationField);
+    containerWorkouts.addEventListener('click', this._moveToPopup.bind(this));
   }
 
   _getPosition() {
@@ -100,7 +108,7 @@ class App {
 
       const coords = [latitude, longitude];
 
-      this.#map = L.map('map').setView(coords, 13);
+      this.#map = L.map('map').setView(coords, this.#mapZoomLevel);
 
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution:
@@ -186,8 +194,6 @@ class App {
     this.#workouts.push(workout);
     console.log(workout);
 
-    // Add new object to workout array
-
     // Render workout on map as marker
     this._renderWorkoutMarker(workout);
 
@@ -195,7 +201,6 @@ class App {
     this._renderWorkout(workout);
 
     // Hide form + clear input fields
-
     this._hideForm();
   }
 
@@ -266,6 +271,28 @@ class App {
     `;
 
     form.insertAdjacentHTML('afterend', html);
+  }
+
+  _moveToPopup(e) {
+    const workoutEl = e.target.closest('.workout');
+
+    if (!workoutEl) return;
+
+    const workout = this.#workouts.find(
+      work => work.id === workoutEl.dataset.id
+    );
+
+    console.log(workout);
+
+    this.#map.setView(workout.coords, this.#mapZoomLevel, {
+      animate: true,
+      pan: {
+        duration: 1,
+      },
+    });
+
+    // using public interface
+    workout.click();
   }
 }
 
