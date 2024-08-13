@@ -247,6 +247,10 @@ a:visited {
     margin: 0;
     z-index: 0;
   }
+  .form {
+    grid-template-columns: none;
+    height: auto;
+  }
   .workouts {
     list-style: none;
     height: 77vh;
