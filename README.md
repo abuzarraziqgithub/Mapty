@@ -1,4 +1,4 @@
-## README for Mapty: Workout Mapping Application
+## Workout Mapping Application
 
 ### Overview
 **Mapty** is a web-based application that helps users track their workouts on a map. The app allows users to log their running or cycling activities, track the duration, distance, and other related metrics, and visualize their routes on an interactive map. Built with modern web technologies, Mapty provides a simple, intuitive interface for fitness enthusiasts who want to keep track of their physical activities.
